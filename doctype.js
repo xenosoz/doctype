@@ -8,6 +8,9 @@ var $doctype;
     return;
   }
 
+  var $moduleMap = {};
+  var nodeStack = [];
+
   function createNode(moduleName, url) {
     var node = document.createElement('script');
     node.type = 'text/javascript';
@@ -25,43 +28,51 @@ var $doctype;
         var cleanup = function(node) {
           node.removeEventListener('load');
           node.removeEventListener('error');
+          nodeStack.unshift();
+          console.log("CAS::clear " + node.src);
         };
         node.addEventListener('load', function() { cleanup(node); onTrue.apply(this, arguments); }, false);
         node.addEventListener('error', function() { cleanup(node); onFalse.apply(this, arguments); }, false);
+
+        console.log("CAS::set" + node.src);
+
+        nodeStack.push(node);
         document.head.appendChild(node);
       },
     };
     return promise;
   }
 
-  function Context() {
-    var self = this;
-    self.$scope = {};
-
-    self.$import = function(moduleName) {
-      console.log('import ' + moduleName);
-      return $context;
-    };
-    self.$define = function(mainFn) {
-      $modules = mainFn.call(this, self.$scope);
-      return $context;
-    };
-  };
-  var $context = new Context();
-
-  $doctype = function(doctype) {
-    return $context;
-  }
-
-  //
-  var $modules = {};
   function load(moduleName, url) {
     var node = createNode(moduleName, url);
 
     executeNode(node).then(function(event) {
       var node = event.currentTarget || event.srcElement;
-      console.log(node.getAttribute('data-doctypemodule'));
     });
+  }
+
+  function Context(contextName) {
+    var self = this;
+    self.$contextName = contextName;
+    self.$scope = {};
+
+    self.$import = function(moduleName) {
+      load(moduleName, moduleName);
+      self.$scope[moduleName] = $moduleMap[moduleName];
+      return self;
+    };
+    self.$define = function(mainFn) {
+      $moduleMap[contextName] = mainFn.call(this, self.$scope);
+      console.log($moduleMap);
+      return self;
+    };
+  };
+
+  $doctype = function(doctype) {
+    var node = nodeStack[nodeStack.length - 1];
+    console.log("CAS: " + node.src);
+    var contextName = node.getAttribute('data-doctypemodule');
+    return new Context(contextName);
   }
 
   load('main', 'example/main.js');
