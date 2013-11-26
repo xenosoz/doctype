@@ -77,9 +77,16 @@ var $doctype;
           var moduleSrc = dep[0];
           var module = $moduleMap[moduleSrc];
 
-          var value = dep[1] ? module[dep[1]] : module;
-          var name = dep[2] || dep[0];
-          $scope[name] = value;
+          var subFields = dep[1];
+          var aliases = dep[2];
+          if (!isArray(subFields)) { subFields = [subFields]; }
+          if (!isArray(aliases)) { aliases = [aliases]; }
+
+          for (var i = 0; i < aliases.length; ++i) {
+            var value = subFields[i] ? module[subFields[i]] : module;
+            var name = aliases[i] || dep[0];
+            $scope[name] = value;
+          }
         }
         var module = context.body.call(this, $scope);
         $moduleMap[moduleName] = module;
@@ -100,15 +107,41 @@ var $doctype;
     self.body = null;
 
     self.import_ = function(moduleSrc) {
-      self.deps.push([moduleSrc, null, null]);
+      if (!isArray(moduleSrc)) { moduleSrc = [moduleSrc]; }
+      for (var mIdx in moduleSrc) {
+        self.deps.push([moduleSrc[mIdx], null, null]);
+      }
     };
     self.import_as_ = function(moduleSrc, moduleAlias) {
-      self.deps.push([moduleSrc, null, moduleAlias]);
+      if (!isArray(moduleSrc)) { moduleSrc = [moduleSrc]; }
+      if (!isArray(moduleAlias)) { moduleAlias = [moduleAlias]; }
+      var len = moduleSrc.length;
+      if (len != moduleAlias.length) {
+        throw "ValueError: arity mismatch on import " + moduleSrc + " as " + moduleAlias + " in " + self.name;
+      }
+      for (var i = 0; i < len; ++i) {
+        self.deps.push([moduleSrc[i], null, moduleAlias[i]]);
+      }
     };
     self.from_import_ = function(moduleSrc, fnName) {
-      self.deps.push([moduleSrc, fnName, null]);
+      if (isArray(moduleSrc)) {
+        throw "TypeError: " + moduleSrc + " cannot be an array for from_import_ in " + self.name;
+      }
+      if (!isArray(fnName)) { fnName = [fnName]; }
+      for (var fnKey in fnName) {
+        self.deps.push([moduleSrc, fnName[fnKey], null]);
+      }
     };
     self.from_import_as_ = function(moduleSrc, fnName, fnAlias) {
+      if (isArray(moduleSrc)) {
+        throw "TypeError: " + moduleSrc + " cannot be an array for from_import_ in " + self.name;
+      }
+      if (!isArray(fnName)) { fnName = [fnName]; }
+      if (!isArray(fnAlias)) { fnAlias = [fnAlias]; }
+      var len = fnName.length;
+      if (len != fnAlias.length) {
+        throw "ValueError: arity mismatch on from " + moduleSrc + " import " + fnName + " as " + fnAlias + " in " + self.name;
+      }
       self.deps.push([moduleSrc, fnName, fnAlias]);
     };
     self.define_ = function(body) {
