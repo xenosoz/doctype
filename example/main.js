@@ -8,7 +8,7 @@
 
 $doctype('-*- javascript -*-')
   .$import('example/widget.js').$as('Widget')
-  .$import(['example/alpha.js', 'example/beta.js'])
+  .$import(['example/alpha.js', 'example/beta.js']).$as(['alpha', 'beta'])
   .$define(function($scope) {
     w = new $scope.Widget();
     console.log("Main::init();");

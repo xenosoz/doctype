@@ -34,12 +34,9 @@ var $doctype;
           node.removeEventListener('load');
           node.removeEventListener('error');
           nodeStack.unshift();
-          console.log("CAS::clear " + node.src);
         };
         node.addEventListener('load', function() { cleanup(node); onTrue.apply(this, arguments); }, false);
         node.addEventListener('error', function() { cleanup(node); onFalse.apply(this, arguments); }, false);
-
-        console.log("CAS::set " + node.src);
 
         nodeStack.push(node);
         document.head.appendChild(node);
@@ -199,7 +196,6 @@ var $doctype;
 
   $doctype = function(doctype) {
     var node = nodeStack[nodeStack.length - 1];
-    console.log("CAS::get " + node.src);
     var contextName = node.getAttribute('data-doctypemodule');
     var context = new Context(contextName);
     $contextMap[contextName] = context;
@@ -211,9 +207,5 @@ var $doctype;
     //console.log($contextMap);
     //console.log($moduleMap);
   });
-
-  // XXX
-  $global.$contextMap = $contextMap;
-  $global.$moduleMap = $moduleMap;
 
 })(this);
