@@ -1,4 +1,4 @@
-doctype
+Doctype
 =======
 
 Doctype is an in-house replacement for require.js

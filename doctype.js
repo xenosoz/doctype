@@ -207,7 +207,15 @@ var $doctype;
     return new ContextBuilder(context);
   }
 
-  load('example/main.js', function() {
+  var mainScript;
+  var scripts = toArray(document.getElementsByTagName('script'));
+  for (var sIdx in scripts) {
+    var script = scripts[sIdx];
+    var dataMain = script.getAttribute('data-main');
+    if (dataMain) { mainScript = dataMain; }
+  }
+
+  load(mainScript, function() {
     //console.log($contextMap);
     //console.log($moduleMap);
   });
