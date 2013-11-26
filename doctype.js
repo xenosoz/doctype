@@ -16,6 +16,10 @@ var $doctype;
     return Object.prototype.toString.call(x) === '[object Array]';
   }
 
+  function toArray(x) {
+    return Array.prototype.slice.call(x, 0);
+  }
+
   function createNode(moduleName, url) {
     var node = document.createElement('script');
     node.type = 'text/javascript';
@@ -159,32 +163,32 @@ var $doctype;
     };
     self.machine = {
       epsilon: {
-        $import: function(x) { self.$import=x; return self.machine.$import; },
+        $import: function() { self.$import=toArray(arguments); return self.machine.$import; },
         $from: function(x) { self.$from=x; return self.machine.$from; },
         $define: function(x) { self.context.define_(x); self.clear(); return self.machine.$define; },
       },
       $import: {
-        $import: function(x) { self.context.import_(self.$import); self.clear(); self.$import=x; return self.machine.$import; },
-        $as: function(x) { self.$as=x; return self.machine.$import$as; },
+        $import: function() { self.context.import_(self.$import); self.clear(); self.$import=toArray(arguments); return self.machine.$import; },
+        $as: function() { self.$as=toArray(arguments); return self.machine.$import$as; },
         $from: function(x) { self.context.import_(self.$import); self.clear(); self.$from=x; return self.machine.$from; },
         $define: function(x) { self.context.import_(self.$import); self.clear(); self.context.define_(x); return self.machine.$define},
       },
       $import$as: {
-        $import: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.$import=x; return self.machine.$import; },
+        $import: function() { self.context.import_as_(self.$import, self.$as); self.clear(); self.$import=toArray(arguments); return self.machine.$import; },
         $from: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.$from=x; return self.machine.$from; },
         $define: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.context.define_(x); return self.machine.$define; },
       },
       $from: {
-        $import: function(x) { self.$import=x; return self.machine.$from$import; },
+        $import: function() { self.$import=toArray(arguments); return self.machine.$from$import; },
       },
       $from$import: {
-        $import: function(x) { self.context.from_import_(self.$from, self.$import); self.clear(); self.$import=x; return self.machine.$import; },
-        $as: function(x) { self.$as=x; return self.machine.$from$import$as; },
+        $import: function() { self.context.from_import_(self.$from, self.$import); self.clear(); self.$import=toArray(arguments); return self.machine.$import; },
+        $as: function() { self.$as=toArray(arguments); return self.machine.$from$import$as; },
         $from: function(x) { self.context.from_import_(self.$from, self.$import); self.clear(); self.$from=x; return self.machine.$from; },
         $define: function(x) { self.context.from_import_(self.$from, self.$import); self.clear(); self.context.define_(x); return self.machine.$define; },
       },
       $from$import$as: {
-        $import: function(x) { self.from_import_as_(self.$from, self.$import, self.$as); self.clear(); $self.$import=x; return self.machine.$import; },
+        $import: function() { self.from_import_as_(self.$from, self.$import, self.$as); self.clear(); $self.$import=toArray(arguments); return self.machine.$import; },
         $from: function(x) { self.from_import_as_(self.$from, self.$import, self.$as); self.clear(); $self.$from=x; return self.machine.$from; },
         $define: function(x) { self.from_import_as_(self.$from, self.$import, self.$as); self.clear(); self.context.define_(x); return self.machine.$define; },
       },
