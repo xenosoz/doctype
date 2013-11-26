@@ -63,6 +63,16 @@ var $doctype;
         load(dep[0], dep[0], function() { fixiter(depKey+1) });
       };
       var done = function() {
+        var $scope = {};
+        for (var depKey in context.deps) {
+          var dep = context.deps[depKey];
+          var depName = dep[0];  // XXX
+          var depModule = $moduleMap[depName];
+          $scope[depName] = depModule;
+        }
+        var module = context.body.call(this, $scope);
+        $moduleMap[moduleName] = module;
+
         callback && callback.call(this);
       }
       fixiter(0);
@@ -153,9 +163,11 @@ var $doctype;
 
   load('main', 'example/main.js', function() {
     console.log($contextMap);
+    console.log($moduleMap);
   });
 
   // XXX
   $global.$contextMap = $contextMap;
+  $global.$moduleMap = $moduleMap;
 
 })(this);
