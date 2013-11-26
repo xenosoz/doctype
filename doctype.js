@@ -12,6 +12,10 @@ var $doctype;
   var $moduleMap = {};
   var nodeStack = [];
 
+  function isArray(x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  }
+
   function createNode(moduleName, url) {
     var node = document.createElement('script');
     node.type = 'text/javascript';
@@ -44,7 +48,8 @@ var $doctype;
     return promise;
   }
 
-  function load(moduleName, url, callback) {
+  function load(url, callback) {
+    var moduleName = url;  // XXX
     var node = createNode(moduleName, url);
     if ($contextMap[moduleName]) {
       callback && callback(this);
@@ -55,26 +60,34 @@ var $doctype;
       var contextName = node.getAttribute('data-doctypemodule');
       var context = $contextMap[contextName];
 
+      // Scan for dependencies
       var fixiter = function(depKey) {
         if (depKey >= context.deps.length) {
           return done.call(this);
         }
         var dep = context.deps[depKey];
-        load(dep[0], dep[0], function() { fixiter(depKey+1) });
+        load(dep[0], function() { fixiter(depKey+1) });
       };
+
+      // Load for dependencies
       var done = function() {
         var $scope = {};
         for (var depKey in context.deps) {
           var dep = context.deps[depKey];
-          var depName = dep[0];  // XXX
-          var depModule = $moduleMap[depName];
-          $scope[depName] = depModule;
+          var moduleSrc = dep[0];
+          var module = $moduleMap[moduleSrc];
+
+          var value = dep[1] ? module[dep[1]] : module;
+          var name = dep[2] || dep[0];
+          $scope[name] = value;
         }
         var module = context.body.call(this, $scope);
         $moduleMap[moduleName] = module;
 
         callback && callback.call(this);
       }
+
+      // Fire!
       fixiter(0);
     });
   }
@@ -92,11 +105,11 @@ var $doctype;
     self.import_as_ = function(moduleSrc, moduleAlias) {
       self.deps.push([moduleSrc, null, moduleAlias]);
     };
-    self.from_import_ = function(moduleSrc, fnSrc) {
-      self.deps.push([moduleSrc, fnSrc, null]);
+    self.from_import_ = function(moduleSrc, fnName) {
+      self.deps.push([moduleSrc, fnName, null]);
     };
-    self.from_import_as_ = function(moduleSrc, fnSrc, fnAlias) {
-      self.deps.push([moduleSrc, fnSrc, fnAlias]);
+    self.from_import_as_ = function(moduleSrc, fnName, fnAlias) {
+      self.deps.push([moduleSrc, fnName, fnAlias]);
     };
     self.define_ = function(body) {
       self.body = body;
@@ -129,7 +142,7 @@ var $doctype;
       $import$as: {
         $import: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.$import=x; return self.machine.$import; },
         $from: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.$from=x; return self.machine.$from; },
-        $define: function(x) { self.context.import_as(self.$import, self.$as); self.clear(); self.context.define_(x); return self.machine.$define; },
+        $define: function(x) { self.context.import_as_(self.$import, self.$as); self.clear(); self.context.define_(x); return self.machine.$define; },
       },
       $from: {
         $import: function(x) { self.$import=x; return self.machine.$from$import; },
@@ -161,9 +174,9 @@ var $doctype;
     return new ContextBuilder(context);
   }
 
-  load('main', 'example/main.js', function() {
-    console.log($contextMap);
-    console.log($moduleMap);
+  load('example/main.js', function() {
+    //console.log($contextMap);
+    //console.log($moduleMap);
   });
 
   // XXX

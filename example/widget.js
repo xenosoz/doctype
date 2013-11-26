@@ -4,5 +4,5 @@ $doctype('-*- javascript -*-')
 
     function Widget() {
     }
-    return new Widget();
+    return Widget;
   });
