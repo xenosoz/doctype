@@ -46,10 +46,26 @@ var $doctype;
 
   function load(moduleName, url, callback) {
     var node = createNode(moduleName, url);
+    if ($contextMap[moduleName]) {
+      callback && callback(this);
+    }
 
     executeNode(node).then(function(event) {
       var node = event.currentTarget || event.srcElement;
-      callback.call(this);
+      var contextName = node.getAttribute('data-doctypemodule');
+      var context = $contextMap[contextName];
+
+      var fixiter = function(depKey) {
+        if (depKey >= context.deps.length) {
+          return done.call(this);
+        }
+        var dep = context.deps[depKey];
+        load(dep[0], dep[0], function() { fixiter(depKey+1) });
+      };
+      var done = function() {
+        callback && callback.call(this);
+      }
+      fixiter(0);
     });
   }
 
