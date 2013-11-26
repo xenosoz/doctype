@@ -7,11 +7,15 @@
 // ;
 
 $doctype('-*- javascript -*-')
-  .$import('example/widget.js').$as('Widget')
+  .$from('example/widget.js').$import('*')
   .$import('example/alpha.js', 'example/beta.js').$as('alpha', 'beta')
   .$define(function($scope) {
-    w = new $scope.Widget();
     console.log("Main::init();");
+
+    w = new $scope.Widget();
+
+    $scope.greet()  // from example/widget.js
     console.log($scope);
+
     return 42;
   });

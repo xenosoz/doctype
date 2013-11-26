@@ -80,6 +80,10 @@ var $doctype;
 
           var subFields = dep[1];
           var aliases = dep[2];
+          if (subFields == '*') {
+            // from Module import *
+            subFields = aliases = Object.keys(module);
+          }
           if (!isArray(subFields)) { subFields = [subFields]; }
           if (!isArray(aliases)) { aliases = [aliases]; }
 
