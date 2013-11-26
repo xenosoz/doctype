@@ -53,7 +53,7 @@ var $doctype;
     var moduleName = url;  // XXX
     var node = createNode(moduleName, url);
     if ($contextMap[moduleName]) {
-      callback && callback(this);
+      return callback && callback(this);
     }
 
     executeNode(node).then(function(event) {
